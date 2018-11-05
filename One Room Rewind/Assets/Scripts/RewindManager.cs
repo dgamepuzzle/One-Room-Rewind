@@ -51,12 +51,45 @@ public class RewindManager : MonoBehaviour {
                     timeElapsed = 0;
                     throw new System.Exception("elapsed Less than 0");
                 }
-            }else if(value == false && rewinding == true)
+
+                //Reverse Particles
+                foreach (ParticleSystem system in particleSystems)
+                {
+                    ParticleSystem.Particle[] p = new ParticleSystem.Particle[system.particleCount + 1];
+                    int l = system.GetParticles(p);
+
+                    int i = 0;
+                    while (i < l)
+                    {
+                        p[i].velocity += -2 * p[i].totalVelocity;
+                        i++;
+                    }
+
+                    system.SetParticles(p, l);
+                }
+            }
+            else if(value == false && rewinding == true)
             {
                 mainCamera.transform.parent.GetComponent<RigidbodyFirstPersonController>().enabled = true;
                 RigidbodyFirstPersonController controller = GameObject.Find("RigidBodyFPSController").GetComponent<RigidbodyFirstPersonController>();
                 controller.mouseLook.m_CharacterTargetRot.eulerAngles = new Vector3(0, controller.gameObject.transform.rotation.eulerAngles.y, 0);
                 controller.mouseLook.m_CameraTargetRot.eulerAngles = new Vector3(controller.transform.GetChild(0).transform.localRotation.eulerAngles.x, 0, 0);
+                
+                //Reverse Particles
+                foreach (ParticleSystem system in particleSystems)
+                {
+                    ParticleSystem.Particle[] p = new ParticleSystem.Particle[system.particleCount + 1];
+                    int l = system.GetParticles(p);
+
+                    int i = 0;
+                    while (i < l)
+                    {
+                        p[i].velocity += -2 * p[i].totalVelocity;
+                        i++;
+                    }
+
+                    system.SetParticles(p, l);
+                }
             }
             rewinding = value;
         }
@@ -65,10 +98,13 @@ public class RewindManager : MonoBehaviour {
     /// The amount of Snaps taken (automatically) per second.
     /// </summary>
     public float snapsPerSecond;
+
     /// <summary>
     /// The amount of seconds worth of Snaps saved before they are removed.
     /// </summary>
     public float secondsSaved;
+
+    public List<ParticleSystem> particleSystems = new List<ParticleSystem>();
     
     LinkedList<RewindableObject> rewindableObjects = new LinkedList<RewindableObject>();
     float timeElapsed;

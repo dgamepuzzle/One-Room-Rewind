@@ -53,3 +53,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   snapsPerSecond: 15
   secondsSaved: 5
+  particleSystems:
+  - {fileID: 0}
