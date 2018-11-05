@@ -25,6 +25,7 @@ public class RewindManager : MonoBehaviour {
     }
 
     private bool rewinding = false;
+
     /// <summary>
     /// Is the Game currently rewinding?
     /// If setting to true from false, executes tasks neccessary to start rewinding.
@@ -94,6 +95,7 @@ public class RewindManager : MonoBehaviour {
             rewinding = value;
         }
     }
+    
     /// <summary>
     /// The amount of Snaps taken (automatically) per second.
     /// </summary>
@@ -123,7 +125,7 @@ public class RewindManager : MonoBehaviour {
         }
     }
 
-    void Start () {
+    void Start(){
         rewindableObjects.AddFirst(new RewindableObject(GameObject.FindGameObjectWithTag("MainCamera")));
         mainCamera = rewindableObjects.First.Value.Object;
         foreach (GameObject obj in GameObject.FindGameObjectsWithTag("rewindableObject"))
@@ -132,7 +134,7 @@ public class RewindManager : MonoBehaviour {
         }
 	}
 	
-	void Update ()
+	void Update()
     {
         IsRewinding = Input.GetKey(KeyCode.R);
 

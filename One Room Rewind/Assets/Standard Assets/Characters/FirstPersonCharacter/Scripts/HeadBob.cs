@@ -30,17 +30,17 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private void Update()
         {
             //TODO REMOVE THIS
-            if (Input.GetKeyDown(KeyCode.Q))
+            if (Input.GetKeyDown(KeyCode.X))
             {
                 RaycastHit hit;
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 if (Physics.Raycast(ray, out hit, 100.0f))
                 {
                     foreach (Rigidbody rb in GameObject.FindObjectsOfType<Rigidbody>())
-                        rb.AddExplosionForce(2000, hit.point, 5);
+                        rb.AddExplosionForce(1000, hit.point, 20);
                 }
             }
-            if (Input.GetKeyDown(KeyCode.E)){
+            if (Input.GetKeyDown(KeyCode.Z)){
                 RaycastHit hit;
                 Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                 if (Physics.Raycast(ray, out hit, 100.0f))
@@ -51,7 +51,18 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 }
             }
 
-          //  m_CameraRefocus.GetFocusPoint();
+
+            if (Input.GetMouseButtonDown(0))
+            {
+                RaycastHit hit;
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                if (Physics.Raycast(ray, out hit, 100.0f))
+                {
+                    hit.collider.gameObject.SendMessage("Interact");
+                }
+            }
+
+            //  m_CameraRefocus.GetFocusPoint();
             Vector3 newCameraPosition;
             if (rigidbodyFirstPersonController.Velocity.magnitude > 0 && rigidbodyFirstPersonController.Grounded)
             {
