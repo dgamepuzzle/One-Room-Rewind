@@ -8,8 +8,15 @@ using System.Linq;
 
 public class RewindManager : MonoBehaviour {
 
+    /// <summary>
+    /// Singleton Instance of Rewind Manager Class
+    /// </summary>
     public static RewindManager Instance { get; private set; }
 
+    /// <summary>
+    /// Total number of Snaps stored.
+    /// Snaps Per Second * Seconds Saved
+    /// </summary>
     public float TotalSnaps {
         get
         {
@@ -18,6 +25,11 @@ public class RewindManager : MonoBehaviour {
     }
 
     private bool rewinding = false;
+    /// <summary>
+    /// Is the Game currently rewinding?
+    /// If setting to true from false, executes tasks neccessary to start rewinding.
+    /// If setting to false from true, reEnables deactivated objects and fixes camera angle to account for rewinding changes.
+    /// </summary>
     public bool IsRewinding {
         get
         {
@@ -49,7 +61,13 @@ public class RewindManager : MonoBehaviour {
             rewinding = value;
         }
     }
+    /// <summary>
+    /// The amount of Snaps taken (automatically) per second.
+    /// </summary>
     public float snapsPerSecond;
+    /// <summary>
+    /// The amount of seconds worth of Snaps saved before they are removed.
+    /// </summary>
     public float secondsSaved;
     
     LinkedList<RewindableObject> rewindableObjects = new LinkedList<RewindableObject>();
@@ -96,19 +114,23 @@ public class RewindManager : MonoBehaviour {
         }
         else
         {
+            var rewindableObject = rewindableObjects.First;
             while (timeElapsed > 1 / snapsPerSecond)
             {
                 timeElapsed -= 1 / snapsPerSecond;
-                foreach (RewindableObject rewObj in rewindableObjects)
+                rewindableObject = rewindableObjects.First;
+                for (; rewindableObject != null;)
                 {
-                    rewObj.Pop();
+                    var next = rewindableObject.Next;
+                    rewindableObject.Value.Pop();
+                    rewindableObject = next;
                 }
             }
             // Percent of the way to target time Distance
             float timeDistance = (timeElapsed)/(1 / snapsPerSecond);
             
             //Apply Lerp
-            var rewindableObject = rewindableObjects.First;
+            rewindableObject = rewindableObjects.First;
             for (; rewindableObject != null; )
             {
                 var next = rewindableObject.Next;
@@ -118,22 +140,60 @@ public class RewindManager : MonoBehaviour {
         }
 	}
 
-
+    /// <summary>
+    /// Registers a game object as a RewindableObject.
+    /// Please keep in mind that all gameObjects with the tag "rewindableObject" at the beginning of the game do NOT require adding.
+    /// Snaps once for internal reference, then adds Destroyable SnapAction, then Snaps again for continuity.
+    /// </summary>
+    /// <param name="gameObject">
+    /// The game object to be registered as a RewindableObject.
+    /// </param>
     public void RegisterGameObject(GameObject gameObject)
     {
         RewindableObject rewindableObject = new RewindableObject(gameObject);
-        rewindableObject.OnDeath = () =>
+        rewindableObject.Snap();
+        rewindableObject.SnapAction(() =>
         {
             Destroy(gameObject);
             rewindableObjects.Remove(rewindableObject);
-        };
+            return ActionOutput.Return;
+        });
         rewindableObjects.AddFirst(rewindableObject);
 
-        rewindableObjects.First.Value.Snap();
+        rewindableObject.Snap();
+    }
+
+
+    /// <summary>
+    /// Snaps a SnapAction in an object already in the registered list of RewindableObjects.
+    /// </summary>
+    /// <param name="gameObject">
+    /// The game object to find and Snap.
+    /// </param>
+    /// <param name="action">
+    /// The SnapAction to snap onto the gameObject.
+    /// </param>
+    /// <param name="padNull">
+    /// Would you like to pad a null Action infront of the param action?
+    /// </param>
+    public void SnapActionToObject(GameObject gameObject, Func<ActionOutput> action, bool padNull = false)
+    {
+        foreach(RewindableObject rewindableObject in rewindableObjects)
+        {
+            if(rewindableObject.Object == gameObject)
+            {
+                rewindableObject.SnapAction(action);
+                if (padNull)
+                {
+                    rewindableObject.actions.AddFirst((Func<ActionOutput>) null);
+                }
+                Debug.Log("Action " + action + " snapped to gameObject " + gameObject);
+            }
+        }
     }
 }
 
-struct RewindableObject
+class RewindableObject
 {
     public GameObject Object;
 
@@ -143,8 +203,21 @@ struct RewindableObject
     private Rigidbody rigidbody;
     public LinkedList<Vector3> velocities;
 
-    public Action OnDeath;
+    public LinkedList<Func<ActionOutput>> actions;
 
+    /// <summary>
+    /// Ensures matched synchronity between Actions and other LinkedLists by recording if an Action was added this frame. 
+    /// If it was, a null Action will not be added.
+    /// </summary>
+    public bool addedAction;
+
+
+    /// <summary>
+    /// Creates a RewindableObject.
+    /// </summary>
+    /// <param name="Object">
+    /// The GameObject on which the RewindableObject is based.
+    /// </param>
     public RewindableObject(GameObject Object)
     {
         this.Object = Object;
@@ -152,18 +225,43 @@ struct RewindableObject
         rotations = new LinkedList<Quaternion>();
         rigidbody = Object.GetComponent<Rigidbody>();
         velocities = new LinkedList<Vector3>();
-        OnDeath = null;
-        
-    }
-    public RewindableObject(GameObject Object, Action Execute) : this(Object)
-    {
-        this.OnDeath = Execute;
+        actions = new LinkedList<Func<ActionOutput>>();
+        addedAction = false;
+
+
     }
 
+
+    /// <summary>
+    /// Snaps a SnapAction onto the Action LinkedList.
+    /// </summary>
+    /// <param name="action">
+    /// The SnapAction to Snap.
+    /// </param>
+    public void SnapAction(Func<ActionOutput> action)
+    {
+        ///Friendly reminder
+        if (addedAction) throw new Exception("Action already added this frame!!!! Fix this now you lazy pig");
+        actions.AddFirst(action);
+        addedAction = true;
+    }
+
+    /// <summary>
+    /// Snaps a snapshot of all recorded variables. Note: Will Snap a null action if addedAction == false.
+    /// </summary>
     public void Snap()
     {
         positions.AddFirst(Object.transform.position);
         rotations.AddFirst(Object.transform.rotation);
+
+        if (addedAction)
+        {
+            addedAction = false;
+        }
+        else
+        {
+            actions.AddFirst((Func<ActionOutput>)null);
+        }
 
         if (rigidbody)
         {
@@ -172,6 +270,10 @@ struct RewindableObject
 
         if (positions.Count > RewindManager.Instance.TotalSnaps)
         {
+            if(actions.Count > RewindManager.Instance.TotalSnaps)
+            {
+                actions.RemoveLast();
+            }
             positions.RemoveLast();
             rotations.RemoveLast();
             if (rigidbody)
@@ -181,10 +283,27 @@ struct RewindableObject
         }
     }
 
+
+    /// <summary>
+    /// Pops the first variables from all records.
+    /// It will execute any action it pops off if not null.
+    /// </summary>
     public void Pop()
     {
         positions.RemoveFirst();
         rotations.RemoveFirst();
+        if(actions.Count > 0)
+        {
+            if (actions.First != null && actions.First.Value != null)
+            {
+                ActionOutput output = actions.First.Value();
+                if (output == ActionOutput.Return)
+                {
+                    return;
+                }
+            }
+            actions.RemoveFirst();
+        }
 
         if (rigidbody)
         {
@@ -192,13 +311,15 @@ struct RewindableObject
         }
     }
 
+    /// <summary>
+    /// Applies variables stored in LinkedLists to the GameObject.
+    /// Linearly Interpolates between variables using lerpPercent as the percent.
+    /// </summary>
+    /// <param name="lerpPercent">
+    /// Percent of the way from top to second variables
+    /// </param>
     public void ApplyData(float lerpPercent)
     {
-        if(positions.First.Next == null && OnDeath != null)
-        {
-            OnDeath();
-            return;
-        }
         Object.transform.position = Vector3.LerpUnclamped(positions.First.Value, positions.First.Next.Value, lerpPercent);
         Object.transform.rotation = Quaternion.LerpUnclamped(rotations.First.Value, rotations.First.Next.Value, lerpPercent);
 
@@ -207,4 +328,24 @@ struct RewindableObject
             rigidbody.velocity = Vector3.LerpUnclamped(velocities.First.Value, velocities.First.Next.Value, lerpPercent);
         }
     }
+
+
+    /// <summary>
+    /// Converts Rewindable to simple string containing only the gameObject
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString()
+    {
+        return "Rewindable: " + Object.ToString();
+    }
+}
+
+/// <summary>
+/// Output types for Snap Action.
+/// The RewindableObject will deal with the action when the SnapAction is popped off the LinkedList.
+/// </summary>
+public enum ActionOutput
+{
+    None,
+    Return,
 }
