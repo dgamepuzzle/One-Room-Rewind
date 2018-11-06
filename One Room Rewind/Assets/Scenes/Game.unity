@@ -428,6 +428,24 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4648358185561408, guid: e3c07c7bc1115e34582e4c267f06e6de,
     type: 2}
   m_PrefabInternal: {fileID: 1712643182}
+--- !u!1 &431291577 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 100004, guid: c6453f8e1f814744d8b94e5a6d1f9942,
+    type: 2}
+  m_PrefabInternal: {fileID: 168594496}
+--- !u!114 &431291579
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 431291577}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41265df25813cb54593d7ef1de346d7d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  material: {fileID: 2100000, guid: 2bc93336260232148a74e2bf9474efcc, type: 2}
+  ExecuteInEditMode: 1
 --- !u!1001 &434455783
 Prefab:
   m_ObjectHideFlags: 0
@@ -502,7 +520,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 530354851}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f01d29d88278f45458d99e6b5199e920, type: 3}
   m_Name: 
@@ -511,7 +529,7 @@ MonoBehaviour:
   overrideColor: 0
   overridingColor: {r: 0.9999, g: 0.9999, b: 0.9999, a: 0.9999}
   useShadow: 1
-  shadowMapRenderTexture: {fileID: 607181572}
+  shadowMapRenderTexture: {fileID: 0}
   useCookie: 1
   cookieMapRenderTexture: {fileID: 0}
   enableOutOfPhaseColor: 0
@@ -671,37 +689,6 @@ Prefab:
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e3c07c7bc1115e34582e4c267f06e6de, type: 2}
   m_IsPrefabAsset: 0
---- !u!84 &607181572
-RenderTexture:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_Name: 
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  m_Width: 256
-  m_Height: 256
-  m_AntiAliasing: 1
-  m_DepthFormat: 0
-  m_ColorFormat: 11
-  m_MipMap: 0
-  m_GenerateMips: 1
-  m_SRGB: 0
-  m_UseDynamicScale: 0
-  m_BindMS: 0
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 1
-    m_WrapV: 1
-    m_WrapW: 1
-  m_Dimension: 2
-  m_VolumeDepth: 1
 --- !u!1001 &651457662
 Prefab:
   m_ObjectHideFlags: 0
